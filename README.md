@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Shakti Smart Safety Bag - Women Protection Ecosystem
 
 A modern, fully responsive web application built with Next.js 14, TypeScript, TailwindCSS, and ShadCN UI for empowering women's safety through IoT technology.
@@ -231,3 +232,6 @@ For support, email support@shakti-safety.com
 ---
 
 **Built with Next.js 14, TypeScript, TailwindCSS, and ShadCN UI** 💜
+=======
+# SHAKTI
+>>>>>>> f3b1d8edd6b3dfb22d8b5bbfc6cbc0b95580dada
