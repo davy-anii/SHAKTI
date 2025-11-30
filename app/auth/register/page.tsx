@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Shield, Eye, EyeOff } from "lucide-react";
@@ -8,9 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/lib/auth-context";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { login, isAuthenticated } = useAuth();
+  const [isMounted, setIsMounted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -21,6 +24,20 @@ export default function RegisterPage() {
     password: "",
     confirmPassword: "",
   });
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [isMounted, isAuthenticated, router]);
+
+  if (!isMounted || isAuthenticated) {
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,13 +63,13 @@ export default function RegisterPage() {
       
       console.log("Register:", formData);
       
-      // Store user info in localStorage (temporary solution until backend is ready)
-      localStorage.setItem('shakti_user', JSON.stringify({
+      // Use AuthContext to login after registration
+      login({
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
         authenticated: true,
-      }));
+      });
       
       // Redirect to dashboard
       router.push('/dashboard');

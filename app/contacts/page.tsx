@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Plus, Pencil, Trash2, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -18,6 +19,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ContactForm from "@/components/ContactForm";
 import DashboardCard from "@/components/DashboardCard";
+import { useAuth } from "@/lib/auth-context";
 
 interface Contact {
   id: number;
@@ -27,6 +29,9 @@ interface Contact {
 }
 
 export default function ContactsPage() {
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
   const [contacts, setContacts] = useState<Contact[]>([
     { id: 1, name: "Mom", phone: "+91 98765 43210", relation: "Mother" },
     { id: 2, name: "Dad", phone: "+91 98765 43211", relation: "Father" },
@@ -37,6 +42,20 @@ export default function ContactsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [deletingContact, setDeletingContact] = useState<Contact | null>(null);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && !isAuthenticated) {
+      router.push('/auth/login');
+    }
+  }, [isMounted, isAuthenticated, router]);
+
+  if (!isMounted || !isAuthenticated) {
+    return null;
+  }
 
   const handleAdd = (contact: { name: string; phone: string; relation: string }) => {
     const newContact = { id: Date.now(), ...contact };
@@ -93,7 +112,7 @@ export default function ContactsPage() {
                 setEditingContact(null);
                 setFormOpen(true);
               }}
-              className="bg-linear-to-r from-primary to-accent hover:opacity-90 transition-smooth"
+              className="bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-smooth"
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Contact

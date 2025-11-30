@@ -17,10 +17,17 @@ class ApiClient {
   ): Promise<T> {
     const { token, ...fetchOptions } = options;
 
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...fetchOptions.headers,
     };
+
+    // Add existing headers
+    if (fetchOptions.headers) {
+      const existingHeaders = new Headers(fetchOptions.headers);
+      existingHeaders.forEach((value, key) => {
+        headers[key] = value;
+      });
+    }
 
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;

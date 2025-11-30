@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Shield, Menu, X, User, Bell, LogOut } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -14,40 +14,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/lib/auth-context";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userName, setUserName] = useState("");
-
-  useEffect(() => {
-    // Check authentication status
-    const checkAuth = () => {
-      const storedUser = localStorage.getItem('shakti_user');
-      if (storedUser) {
-        try {
-          const user = JSON.parse(storedUser);
-          setIsAuthenticated(true);
-          setUserName(user.name || "User");
-        } catch (error) {
-          setIsAuthenticated(false);
-        }
-      } else {
-        setIsAuthenticated(false);
-      }
-    };
-
-    checkAuth();
-    // Check periodically for auth changes
-    const interval = setInterval(checkAuth, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem('shakti_user');
-    setIsAuthenticated(false);
-    window.location.href = '/';
-  };
+  const { user, isAuthenticated, logout } = useAuth();
+  const userName = user?.name || "User";
 
   return (
     <nav className="fixed top-0 w-full z-50 nav-glass border-b transition-smooth backdrop-blur-2xl">
@@ -69,12 +41,14 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-2">
-            <Link
-              href="/"
-              className="px-4 py-2 rounded-xl text-foreground/70 hover:text-primary hover:bg-primary/10 transition-smooth font-medium"
-            >
-              Home
-            </Link>
+            {!isAuthenticated && (
+              <Link
+                href="/"
+                className="px-4 py-2 rounded-xl text-foreground/70 hover:text-primary hover:bg-primary/10 transition-smooth font-medium"
+              >
+                Home
+              </Link>
+            )}
             {isAuthenticated && (
               <>
                 <Link
@@ -95,6 +69,12 @@ export default function Navbar() {
                 >
                   Contacts
                 </Link>
+                <Link
+                  href="/chatbot"
+                  className="px-4 py-2 rounded-xl text-foreground/70 hover:text-primary hover:bg-primary/10 transition-smooth font-medium"
+                >
+                  AI Chat
+                </Link>
               </>
             )}
             <div className="flex items-center space-x-3 ml-4">
@@ -112,7 +92,7 @@ export default function Navbar() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-12 w-12 rounded-xl hover:bg-primary/10 transition-smooth">
                       <Avatar className="h-11 w-11 border-2 border-primary/30">
-                        <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${userName}`} />
+                        <AvatarImage src={user?.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userName}`} />
                         <AvatarFallback className="bg-gradient-primary text-white font-bold">{userName[0]?.toUpperCase() || "U"}</AvatarFallback>
                       </Avatar>
                     </Button>
@@ -142,8 +122,19 @@ export default function Navbar() {
                         Emergency Contacts
                       </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/chatbot" className="cursor-pointer py-2.5">
+                        AI Chat Assistant
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile" className="cursor-pointer py-2.5">
+                        <User className="h-4 w-4 mr-2" />
+                        My Profile
+                      </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive py-2.5">
+                    <DropdownMenuItem onClick={logout} className="cursor-pointer text-destructive py-2.5">
                       <LogOut className="h-4 w-4 mr-2" />
                       Logout
                     </DropdownMenuItem>
@@ -178,13 +169,15 @@ export default function Navbar() {
         {/* Mobile Navigation */}
         {isOpen && (
           <div className="md:hidden pb-6 space-y-2 animate-in slide-in-from-top duration-300">
-            <Link
-              href="/"
-              className="block px-4 py-3 text-foreground/70 hover:text-primary hover:bg-primary/10 rounded-xl transition-smooth font-medium"
-              onClick={() => setIsOpen(false)}
-            >
-              Home
-            </Link>
+            {!isAuthenticated && (
+              <Link
+                href="/"
+                className="block px-4 py-3 text-foreground/70 hover:text-primary hover:bg-primary/10 rounded-xl transition-smooth font-medium"
+                onClick={() => setIsOpen(false)}
+              >
+                Home
+              </Link>
+            )}
             {isAuthenticated && (
               <>
                 <Link
@@ -208,6 +201,13 @@ export default function Navbar() {
                 >
                   Contacts
                 </Link>
+                <Link
+                  href="/chatbot"
+                  className="block px-4 py-3 text-foreground/70 hover:text-primary hover:bg-primary/10 rounded-xl transition-smooth font-medium"
+                  onClick={() => setIsOpen(false)}
+                >
+                  AI Chat
+                </Link>
               </>
             )}
             <div className="pt-4 space-y-3 border-t border-border mt-4">
@@ -216,7 +216,7 @@ export default function Navbar() {
                   <div className="px-4 py-4 bg-primary/5 rounded-xl mb-3 border border-primary/20">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-12 w-12 border-2 border-primary/30">
-                        <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${userName}`} />
+                        <AvatarImage src={user?.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userName}`} />
                         <AvatarFallback className="bg-gradient-primary text-white font-bold">{userName[0]?.toUpperCase() || "U"}</AvatarFallback>
                       </Avatar>
                       <div>
@@ -240,10 +240,21 @@ export default function Navbar() {
                       Emergency Contacts
                     </Button>
                   </Link>
+                  <Link href="/chatbot" onClick={() => setIsOpen(false)}>
+                    <Button variant="outline" className="w-full justify-start rounded-xl hover:bg-primary/10">
+                      AI Chat Assistant
+                    </Button>
+                  </Link>
+                  <Link href="/profile" onClick={() => setIsOpen(false)}>
+                    <Button variant="outline" className="w-full justify-start rounded-xl hover:bg-primary/10">
+                      <User className="h-4 w-4 mr-2" />
+                      My Profile
+                    </Button>
+                  </Link>
                   <Button 
                     variant="outline" 
                     className="w-full justify-start text-destructive rounded-xl hover:bg-destructive/10"
-                    onClick={handleLogout}
+                    onClick={logout}
                   >
                     <LogOut className="h-4 w-4 mr-2" />
                     Logout

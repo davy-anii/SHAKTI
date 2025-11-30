@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Shield, AlertCircle, MapPin, Phone, Users, Heart, Star, ArrowRight, Zap, Bell, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,8 +10,27 @@ import Footer from "@/components/Footer";
 import FeatureCard from "@/components/FeatureCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/lib/auth-context";
 
 export default function Home() {
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [isMounted, isAuthenticated, router]);
+
+  if (!isMounted || isAuthenticated) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen">
       <Navbar />

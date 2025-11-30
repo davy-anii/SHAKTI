@@ -7,6 +7,7 @@ interface User {
   name: string;
   email: string;
   phone?: string;
+  profilePicture?: string;
   authenticated: boolean;
 }
 
@@ -14,6 +15,7 @@ interface AuthContextType {
   user: User | null;
   login: (userData: User) => void;
   logout: () => void;
+  updateProfile: (updates: Partial<User>) => void;
   isAuthenticated: boolean;
 }
 
@@ -39,13 +41,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = (userData: User) => {
     setUser(userData);
-    localStorage.setItem('shakti_user', JSON.stringify(userData));
+    try {
+      localStorage.setItem('shakti_user', JSON.stringify(userData));
+    } catch (error) {
+      console.error("Failed to save user data:", error);
+      alert("Unable to save profile data. Please try with a smaller profile picture.");
+    }
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem('shakti_user');
-    router.push('/');
+    router.push('/auth/login');
+  };
+
+  const updateProfile = (updates: Partial<User>) => {
+    if (user) {
+      const updatedUser = { ...user, ...updates };
+      setUser(updatedUser);
+      try {
+        localStorage.setItem('shakti_user', JSON.stringify(updatedUser));
+      } catch (error) {
+        console.error("Failed to save profile updates:", error);
+        // Revert the update
+        setUser(user);
+        throw new Error("Storage quota exceeded. Please use a smaller profile picture.");
+      }
+    }
   };
 
   return (
@@ -54,6 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         login,
         logout,
+        updateProfile,
         isAuthenticated: !!user,
       }}
     >

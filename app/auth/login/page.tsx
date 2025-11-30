@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Shield, Eye, EyeOff } from "lucide-react";
@@ -8,12 +8,29 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/lib/auth-context";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login, isAuthenticated } = useAuth();
+  const [isMounted, setIsMounted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({ email: "", password: "" });
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [isMounted, isAuthenticated, router]);
+
+  if (!isMounted || isAuthenticated) {
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,12 +46,17 @@ export default function LoginPage() {
       
       console.log("Login:", formData);
       
-      // Store user info in localStorage (temporary solution until backend is ready)
-      localStorage.setItem('shakti_user', JSON.stringify({
-        name: "User",
+      // Extract name from email (before @) or use "User" as default
+      const userName = formData.email.split('@')[0].split('.').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+      ).join(' ') || "User";
+      
+      // Use AuthContext to login
+      login({
+        name: userName,
         email: formData.email,
         authenticated: true,
-      }));
+      });
       
       // Redirect to dashboard
       router.push('/dashboard');
